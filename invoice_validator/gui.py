@@ -42,16 +42,16 @@ class App:
         root.resizable(False, False)
 
         Label(
-            root, text="Kiem tra danh sach hoa don dau vao",
+            root, text="Kiểm tra danh sách hóa đơn đầu vào",
             font=("TkDefaultFont", 12, "bold"),
         ).pack(padx=24, pady=(20, 10))
 
-        self.file_var = StringVar(value="Chua chon file")
+        self.file_var = StringVar(value="Chưa chọn file")
         Label(root, textvariable=self.file_var, fg="gray").pack(padx=24, pady=(0, 14))
 
-        Button(root, text="Chon file...", width=22, command=self.choose_file).pack(pady=4)
+        Button(root, text="Chọn file...", width=22, command=self.choose_file).pack(pady=4)
 
-        self.submit_button = Button(root, text="Xu ly", width=22, state="disabled", command=self.submit)
+        self.submit_button = Button(root, text="Xử lý", width=22, state="disabled", command=self.submit)
         self.submit_button.pack(pady=4)
 
         self.status_var = StringVar(value="")
@@ -61,7 +61,7 @@ class App:
 
     def choose_file(self) -> None:
         chosen = filedialog.askopenfilename(
-            title="Chon file danh sach hoa don (Excel)",
+            title="Chọn file danh sách hóa đơn (Excel)",
             filetypes=[("Excel files", "*.xlsx")],
         )
         if not chosen:
@@ -75,25 +75,25 @@ class App:
         if self.selected_path is None:
             return
         self.submit_button.config(state="disabled")
-        self.status_var.set("Dang xu ly...")
+        self.status_var.set("Đang xử lý...")
         self.root.update()
         try:
             output, counts = process(self.selected_path)
         except Exception as exc:
             logger.exception("Xu ly bi loi")
             messagebox.showerror(
-                "Loi",
-                f"Khong the xu ly file:\n{exc}\n\n"
-                f"Chi tiet da duoc luu vao file log, vui long gui file nay de duoc ho tro:\n{LOG_FILE}",
+                "Lỗi",
+                f"Không thể xử lý file:\n{exc}\n\n"
+                f"Chi tiết đã được lưu vào file log, vui lòng gửi file này để được hỗ trợ:\n{LOG_FILE}",
             )
             return
         finally:
             self.submit_button.config(state="normal")
         self.status_var.set(
-            f"Du lieu loi: {counts['Du_lieu_loi']}\n"
-            f"Trung lap: {counts['Trung_lap']}\n"
-            f"Vuot nguong: {counts['Vuot_nguong']}\n\n"
-            f"Da luu ket qua: {output}"
+            f"Dữ liệu lỗi: {counts['Du_lieu_loi']}\n"
+            f"Trùng lặp: {counts['Trung_lap']}\n"
+            f"Vượt ngưỡng: {counts['Vuot_nguong']}\n\n"
+            f"Đã lưu kết quả: {output}"
         )
 
 
