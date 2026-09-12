@@ -1,11 +1,11 @@
-"""Minimal desktop GUI: pick an input file, run validation, show a summary.
+"""Minimal desktop GUI: a welcome window with a file picker and submit button.
 
 Uses tkinter (Python stdlib) rather than a web UI so the packaged app needs no
-browser or local server -- just double-click and a native file-picker opens.
+browser or local server -- just double-click and a window opens.
 """
 
 from pathlib import Path
-from tkinter import Tk, filedialog, messagebox
+from tkinter import Button, Label, StringVar, Tk, filedialog, messagebox
 
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
@@ -26,32 +26,64 @@ def process(input_path: Path) -> tuple[Path, dict[str, int]]:
     return output, counts
 
 
-def main() -> None:
-    root = Tk()
-    root.withdraw()  # dialogs only -- no need for a full window
+class App:
+    def __init__(self, root: Tk):
+        self.root = root
+        self.selected_path: Path | None = None
 
-    chosen = filedialog.askopenfilename(
-        title="Chon file danh sach hoa don (Excel)",
-        filetypes=[("Excel files", "*.xlsx")],
-    )
-    if not chosen:
-        return
+        root.title("Accountant Check")
+        root.resizable(False, False)
 
-    try:
-        output, counts = process(Path(chosen))
-    except Exception as exc:
-        messagebox.showerror("Loi", f"Khong the xu ly file:\n{exc}")
-        return
+        Label(
+            root, text="Kiem tra danh sach hoa don dau vao",
+            font=("TkDefaultFont", 12, "bold"),
+        ).pack(padx=24, pady=(20, 10))
 
-    messagebox.showinfo(
-        "Hoan tat",
-        (
+        self.file_var = StringVar(value="Chua chon file")
+        Label(root, textvariable=self.file_var, fg="gray").pack(padx=24, pady=(0, 14))
+
+        Button(root, text="Chon file...", width=22, command=self.choose_file).pack(pady=4)
+
+        self.submit_button = Button(root, text="Xu ly", width=22, state="disabled", command=self.submit)
+        self.submit_button.pack(pady=4)
+
+        self.status_var = StringVar(value="")
+        Label(root, textvariable=self.status_var, justify="left", anchor="w").pack(
+            padx=24, pady=(16, 20), fill="x"
+        )
+
+    def choose_file(self) -> None:
+        chosen = filedialog.askopenfilename(
+            title="Chon file danh sach hoa don (Excel)",
+            filetypes=[("Excel files", "*.xlsx")],
+        )
+        if not chosen:
+            return
+        self.selected_path = Path(chosen)
+        self.file_var.set(self.selected_path.name)
+        self.submit_button.config(state="normal")
+        self.status_var.set("")
+
+    def submit(self) -> None:
+        if self.selected_path is None:
+            return
+        try:
+            output, counts = process(self.selected_path)
+        except Exception as exc:
+            messagebox.showerror("Loi", f"Khong the xu ly file:\n{exc}")
+            return
+        self.status_var.set(
             f"Du lieu loi: {counts['Du_lieu_loi']}\n"
             f"Trung lap: {counts['Trung_lap']}\n"
             f"Vuot nguong: {counts['Vuot_nguong']}\n\n"
             f"Da luu ket qua: {output}"
-        ),
-    )
+        )
+
+
+def main() -> None:
+    root = Tk()
+    App(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
