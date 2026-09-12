@@ -67,11 +67,16 @@ class App:
     def submit(self) -> None:
         if self.selected_path is None:
             return
+        self.submit_button.config(state="disabled")
+        self.status_var.set("Dang xu ly...")
+        self.root.update()
         try:
             output, counts = process(self.selected_path)
         except Exception as exc:
             messagebox.showerror("Loi", f"Khong the xu ly file:\n{exc}")
             return
+        finally:
+            self.submit_button.config(state="normal")
         self.status_var.set(
             f"Du lieu loi: {counts['Du_lieu_loi']}\n"
             f"Trung lap: {counts['Trung_lap']}\n"
