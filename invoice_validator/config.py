@@ -37,7 +37,7 @@ DUPLICATE_KEY = [
 VALID_TAX_CODE_LENGTHS = {10, 12, 13}
 
 # Cash-payment / VAT-deduction threshold in VND, by invoice date. Per
-# "vietnam-e_invoice_knowledge_base (1).md" section 3.2, the 5,000,000 rule
+# "docs/vietnam-e-invoice-knowledge-base.md" section 3.2, the 5,000,000 rule
 # took effect 2025-07-01 (Luat Thue GTGT 2024 / Nghi dinh 181/2025/ND-CP);
 # invoices dated before that still fall under the old 20,000,000 rule. Ordered
 # oldest-first; the last entry with effective_from <= invoice date applies.

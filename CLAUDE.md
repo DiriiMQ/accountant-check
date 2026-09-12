@@ -15,7 +15,7 @@ Windows tool plus its input/output data:
 - `final/sample.xlsx` — a sample input showing the exact layout `run.exe` expects.
 - `final.zip` — a zip bundle containing the same `final/` folder (README.pdf, run.exe, sample.xlsx).
 - `Danh sach hoa don dau vao 2025.xlsx` — a real 2025 input invoice list (~3,033 rows) in the same layout.
-- `vietnam-e_invoice_knowledge_base.md` — reference notes on Vietnamese e-invoice numbering and the
+- `docs/vietnam-e-invoice-knowledge-base.md` — reference notes on Vietnamese e-invoice numbering and the
   cash-payment/VAT-deduction threshold rules.
 
 There is no build system, package manifest, or test suite to run.
@@ -60,7 +60,7 @@ Rows 2 and 4 of the sheet embed the business rules the tool implements, in Vietn
 
 ## Important: threshold discrepancy to be aware of
 
-`vietnam-e_invoice_knowledge_base.md` documents that the **20,000,000 VND** threshold used by the
+`docs/vietnam-e-invoice-knowledge-base.md` documents that the **20,000,000 VND** threshold used by the
 spreadsheet/tool is the **old rule**. Per the knowledge base, current regulation
 (Luật Thuế GTGT 2024; Nghị định 181/2025/NĐ-CP) lowered the non-cash-payment threshold for VAT input
 deduction to **5,000,000 VND (VAT-inclusive)**, and it must be aggregated per seller per day, and applies
