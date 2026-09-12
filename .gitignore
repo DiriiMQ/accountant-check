@@ -1,0 +1,11 @@
+# Real business/financial data - never commit to this public repo
+*.xlsx
+*.xls
+~$*
+final.zip
+final/
+
+# OS / editor junk
+.DS_Store
+__pycache__/
+*.pyc
