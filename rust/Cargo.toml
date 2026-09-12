@@ -1,0 +1,31 @@
+[package]
+name = "invoice_validator"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "invoice_validator"
+path = "src/lib.rs"
+
+[[bin]]
+name = "invoice-validator-cli"
+path = "src/bin/cli.rs"
+
+[[bin]]
+name = "accountant-check"
+path = "src/bin/gui.rs"
+
+[dependencies]
+calamine = { version = "0.36.1", features = ["chrono"] }
+rust_xlsxwriter = { version = "0.99.0", features = ["chrono"] }
+clap = { version = "4", features = ["derive"] }
+rfd = "0.17.2"
+flexi_logger = "0.31.10"
+log = "0.4"
+sysinfo = "0.39.6"
+chrono = "0.4"
+anyhow = "1"
+eframe = "0.36.2"
+
+[dev-dependencies]
+tempfile = "3"
