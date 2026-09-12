@@ -109,3 +109,13 @@ runs on `vX.Y.Z` tags: reruns tests, then builds `accountant-check.exe` on `wind
 (no third-party release action). If `gui.py`'s dependencies on `engine`/`report`/`loader` change shape,
 update it alongside `cli.py` — they intentionally duplicate a small amount of orchestration rather than
 share a return-type contract with `cli.run()`.
+
+## Logging (support workflow)
+
+`invoice_validator/logging_setup.py`'s `configure_logging()` sets up a single rotating log file at
+`~/.accountant_check/logs/app.log` (1 MB, 3 backups; `Path.home()` resolves correctly on both Windows and
+macOS/Linux). Both entry points (`cli.main()` and `gui.main()`) call it at startup; each logs input path,
+row count, violation counts, and output path, and logs the full traceback via `logger.exception(...)` on
+failure. The GUI's error dialog also prints the log path so a non-technical user can find and send that
+one file back for debugging — don't log raw invoice data (seller names, tax codes, amounts), only
+counts/paths/exceptions, to keep the log small and avoid logging business data unnecessarily.

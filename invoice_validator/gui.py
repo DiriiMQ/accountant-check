@@ -4,25 +4,32 @@ Uses tkinter (Python stdlib) rather than a web UI so the packaged app needs no
 browser or local server -- just double-click and a window opens.
 """
 
+import logging
 from pathlib import Path
 from tkinter import Button, Label, StringVar, Tk, filedialog, messagebox
 
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
+from .logging_setup import LOG_FILE, configure_logging
 from .report import write_report
+
+logger = logging.getLogger(__name__)
 
 CATEGORIES = ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
 
 
 def process(input_path: Path) -> tuple[Path, dict[str, int]]:
     output = input_path.with_name("invalid_data.xlsx")
+    logger.info("Bat dau xu ly: input=%s", input_path)
     df = load_invoices(input_path)
+    logger.info("Da doc %d dong du lieu", len(df))
     violations = run_rules(df, DEFAULT_RULES)
     write_report(output, len(df), df, violations, None)
     counts = {
         category: len({violation.excel_row for violation in violations if violation.category == category})
         for category in CATEGORIES
     }
+    logger.info("Ket qua: %s -> %s", counts, output)
     return output, counts
 
 
@@ -73,7 +80,12 @@ class App:
         try:
             output, counts = process(self.selected_path)
         except Exception as exc:
-            messagebox.showerror("Loi", f"Khong the xu ly file:\n{exc}")
+            logger.exception("Xu ly bi loi")
+            messagebox.showerror(
+                "Loi",
+                f"Khong the xu ly file:\n{exc}\n\n"
+                f"Chi tiet da duoc luu vao file log, vui long gui file nay de duoc ho tro:\n{LOG_FILE}",
+            )
             return
         finally:
             self.submit_button.config(state="normal")
@@ -86,6 +98,7 @@ class App:
 
 
 def main() -> None:
+    configure_logging()
     root = Tk()
     App(root)
     root.mainloop()
