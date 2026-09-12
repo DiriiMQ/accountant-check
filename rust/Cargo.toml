@@ -25,6 +25,7 @@ log = "0.4"
 sysinfo = "0.39.6"
 chrono = "0.4"
 anyhow = "1"
+eframe = "0.36.2"
 
 [dev-dependencies]
 tempfile = "3"
