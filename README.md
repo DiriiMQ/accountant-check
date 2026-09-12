@@ -21,9 +21,10 @@ No install, no Python needed — just a Windows computer.
 1. Open the [latest release](../../releases/latest) page.
 2. Under "Assets", click **`accountant-check.exe`** to download it.
 3. Double-click the downloaded file to open the app.
-4. Click **"Chon file..."** and pick your invoice `.xlsx` file.
-5. Click **"Xu ly"** and wait for the summary to appear.
-6. The report file `invalid_data.xlsx` is saved in the same folder as your invoice file.
+4. Click **"Chọn file..."** and pick your invoice `.xlsx` file.
+5. Click **"Xử lý"** and wait for the summary to appear.
+6. The report file `Kết quả kiểm tra hóa đơn.xlsx` is saved in the same folder as your invoice file —
+   click **"Mở file kết quả"** to open it directly.
 
 ### Command line (advanced)
 
@@ -87,9 +88,10 @@ Không cần cài đặt, không cần Python — chỉ cần máy tính Windows
 1. Mở trang [latest release](../../releases/latest).
 2. Trong mục "Assets", bấm vào **`accountant-check.exe`** để tải về.
 3. Double-click vào file vừa tải để mở ứng dụng.
-4. Bấm **"Chon file..."** và chọn file hóa đơn `.xlsx` của bạn.
-5. Bấm **"Xu ly"** và chờ bảng tóm tắt kết quả hiện ra.
-6. File báo cáo `invalid_data.xlsx` sẽ được lưu ngay trong thư mục chứa file hóa đơn của bạn.
+4. Bấm **"Chọn file..."** và chọn file hóa đơn `.xlsx` của bạn.
+5. Bấm **"Xử lý"** và chờ bảng tóm tắt kết quả hiện ra.
+6. File báo cáo `Kết quả kiểm tra hóa đơn.xlsx` sẽ được lưu ngay trong thư mục chứa file hóa đơn của
+   bạn — bấm **"Mở file kết quả"** để mở luôn.
 
 #### Dòng lệnh (nâng cao)
 

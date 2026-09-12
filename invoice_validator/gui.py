@@ -5,9 +5,13 @@ browser or local server -- just double-click and a window opens.
 """
 
 import logging
+import os
+import subprocess
+import sys
 from pathlib import Path
 from tkinter import Button, Label, StringVar, Tk, filedialog, messagebox
 
+from .config import DEFAULT_OUTPUT_FILENAME
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
 from .logging_setup import LOG_FILE, configure_logging
@@ -18,8 +22,18 @@ logger = logging.getLogger(__name__)
 CATEGORIES = ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
 
 
+def open_file(path: Path) -> None:
+    """Open a file with the OS's default associated app."""
+    if sys.platform == "win32":
+        os.startfile(path)  # type: ignore[attr-defined]
+    elif sys.platform == "darwin":
+        subprocess.run(["open", str(path)], check=False)
+    else:
+        subprocess.run(["xdg-open", str(path)], check=False)
+
+
 def process(input_path: Path) -> tuple[Path, dict[str, int]]:
-    output = input_path.with_name("invalid_data.xlsx")
+    output = input_path.with_name(DEFAULT_OUTPUT_FILENAME)
     logger.info("Bat dau xu ly: input=%s", input_path)
     df = load_invoices(input_path)
     logger.info("Da doc %d dong du lieu", len(df))
@@ -37,6 +51,7 @@ class App:
     def __init__(self, root: Tk):
         self.root = root
         self.selected_path: Path | None = None
+        self.output_path: Path | None = None
 
         root.title("Accountant Check")
         root.resizable(False, False)
@@ -54,6 +69,11 @@ class App:
         self.submit_button = Button(root, text="Xử lý", width=22, state="disabled", command=self.submit)
         self.submit_button.pack(pady=4)
 
+        self.open_button = Button(
+            root, text="Mở file kết quả", width=22, state="disabled", command=self.open_output,
+        )
+        self.open_button.pack(pady=4)
+
         self.status_var = StringVar(value="")
         Label(root, textvariable=self.status_var, justify="left", anchor="w").pack(
             padx=24, pady=(16, 20), fill="x"
@@ -69,6 +89,8 @@ class App:
         self.selected_path = Path(chosen)
         self.file_var.set(self.selected_path.name)
         self.submit_button.config(state="normal")
+        self.output_path = None
+        self.open_button.config(state="disabled")
         self.status_var.set("")
 
     def submit(self) -> None:
@@ -89,12 +111,23 @@ class App:
             return
         finally:
             self.submit_button.config(state="normal")
+        self.output_path = output
+        self.open_button.config(state="normal")
         self.status_var.set(
             f"Dữ liệu lỗi: {counts['Du_lieu_loi']}\n"
             f"Trùng lặp: {counts['Trung_lap']}\n"
             f"Vượt ngưỡng: {counts['Vuot_nguong']}\n\n"
             f"Đã lưu kết quả: {output}"
         )
+
+    def open_output(self) -> None:
+        if self.output_path is None:
+            return
+        try:
+            open_file(self.output_path)
+        except OSError as exc:
+            logger.exception("Khong the mo file ket qua")
+            messagebox.showerror("Lỗi", f"Không thể mở file:\n{exc}")
 
 
 def main() -> None:

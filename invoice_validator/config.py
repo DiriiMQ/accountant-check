@@ -51,3 +51,6 @@ THRESHOLD_SCHEDULE = [
 
 # Used only when a flat --threshold override is passed on the CLI.
 DEFAULT_THRESHOLD = 5_000_000
+
+# Default report filename, written next to the input file unless overridden.
+DEFAULT_OUTPUT_FILENAME = "Kết quả kiểm tra hóa đơn.xlsx"

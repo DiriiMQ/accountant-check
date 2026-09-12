@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
+from .config import DEFAULT_OUTPUT_FILENAME
 from .cross_row_rules import OverThresholdRule
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
@@ -20,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("input", type=Path, help="Path to input invoice Excel file")
     parser.add_argument(
         "-o", "--output", type=Path, default=None,
-        help="Path to output report file (default: invalid_data.xlsx next to input)",
+        help=f"Path to output report file (default: {DEFAULT_OUTPUT_FILENAME!r} next to input)",
     )
     parser.add_argument(
         "--threshold", type=int, default=None,
@@ -34,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run(input_path: Path, output_path: Path | None, threshold: int | None) -> Path:
-    output = output_path or input_path.with_name("invalid_data.xlsx")
+    output = output_path or input_path.with_name(DEFAULT_OUTPUT_FILENAME)
     logger.info("Bat dau xu ly: input=%s output=%s threshold=%s", input_path, output, threshold)
 
     df = load_invoices(input_path)
