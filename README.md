@@ -22,6 +22,19 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Desktop app (recommended, no terminal needed)
+
+No install, no Python needed — just a Windows computer.
+
+1. Open the [latest release](../../releases/latest) page.
+2. Under "Assets", click **`accountant-check.exe`** to download it.
+3. Double-click the downloaded file to open the app.
+4. Click **"Chon file..."** and pick your invoice `.xlsx` file.
+5. Click **"Xu ly"** and wait for the summary to appear.
+6. The report file `invalid_data.xlsx` is saved in the same folder as your invoice file.
+
+### Command line (advanced)
+
 ```
 python3 -m invoice_validator <input.xlsx> [-o report.xlsx] [--threshold 5000000]
 ```
@@ -31,15 +44,6 @@ for the exact column mapping).
 
 Output: a report workbook with one sheet per violation category (`Du_lieu_loi`, `Trung_lap`,
 `Vuot_nguong`) plus a `Tong_hop` summary sheet.
-
-### Desktop app (no terminal needed)
-
-Download the `accountant-check.exe` asset from the [latest release](../../releases/latest) (Windows
-only). Double-click it, pick your invoice `.xlsx` in the file dialog, and a summary appears when it's
-done — `invalid_data.xlsx` is written next to your input file. No install, no Python required.
-
-A new release (with a freshly built exe) is published automatically whenever a `vX.Y.Z` tag is pushed —
-see `.github/workflows/release.yml`.
 
 ## Project structure
 
@@ -86,6 +90,19 @@ pip install -r requirements.txt
 
 ### Cách sử dụng
 
+#### Ứng dụng desktop (khuyên dùng, không cần terminal)
+
+Không cần cài đặt, không cần Python — chỉ cần máy tính Windows.
+
+1. Mở trang [latest release](../../releases/latest).
+2. Trong mục "Assets", bấm vào **`accountant-check.exe`** để tải về.
+3. Double-click vào file vừa tải để mở ứng dụng.
+4. Bấm **"Chon file..."** và chọn file hóa đơn `.xlsx` của bạn.
+5. Bấm **"Xu ly"** và chờ bảng tóm tắt kết quả hiện ra.
+6. File báo cáo `invalid_data.xlsx` sẽ được lưu ngay trong thư mục chứa file hóa đơn của bạn.
+
+#### Dòng lệnh (nâng cao)
+
 ```
 python3 -m invoice_validator <file_dau_vao.xlsx> [-o bao_cao.xlsx] [--threshold 5000000]
 ```
@@ -95,15 +112,6 @@ B-I (xem `CLAUDE.md` để biết chi tiết ánh xạ từng cột).
 
 Kết quả: một file báo cáo với một sheet cho mỗi loại lỗi/vi phạm (`Du_lieu_loi`, `Trung_lap`,
 `Vuot_nguong`) và một sheet tổng hợp `Tong_hop`.
-
-### Ứng dụng desktop (không cần dùng terminal)
-
-Tải file `accountant-check.exe` trong mục [latest release](../../releases/latest) (chỉ dùng cho
-Windows). Double-click để mở, chọn file hóa đơn `.xlsx` qua hộp thoại, xong sẽ hiện bảng tóm tắt kết
-quả — file `invalid_data.xlsx` được lưu ngay cạnh file đầu vào. Không cần cài đặt, không cần Python.
-
-Mỗi khi có một tag phiên bản mới dạng `vX.Y.Z` được đẩy lên, hệ thống sẽ tự động build lại file exe và
-tạo release mới — xem `.github/workflows/release.yml`.
 
 ### Cấu trúc dự án
 
