@@ -32,14 +32,26 @@ for the exact column mapping).
 Output: a report workbook with one sheet per violation category (`Du_lieu_loi`, `Trung_lap`,
 `Vuot_nguong`) plus a `Tong_hop` summary sheet.
 
+### Desktop app (no terminal needed)
+
+Download the `accountant-check.exe` asset from the [latest release](../../releases/latest) (Windows
+only). Double-click it, pick your invoice `.xlsx` in the file dialog, and a summary appears when it's
+done — `invalid_data.xlsx` is written next to your input file. No install, no Python required.
+
+A new release (with a freshly built exe) is published automatically whenever a `vX.Y.Z` tag is pushed —
+see `.github/workflows/release.yml`.
+
 ## Project structure
 
 - `invoice_validator/` — the package. Rule-registry design: `helpers.py` (pure functions shared across
   rules), `field_rules.py` / `cross_row_rules.py` (rule classes), `engine.py` (default registry +
   runner), `report.py`, `cli.py`. Add a new check by implementing `Rule` and adding it to the registry —
-  no existing rule code needs editing.
+  no existing rule code needs editing. `gui.py` is a minimal tkinter file-picker front-end for the same
+  pipeline, used to build the desktop exe (`run_gui.py` is its PyInstaller entry point).
 - `tests/` — `unittest` test suite (stdlib only, no pytest dependency)
 - `docs/` — reference notes on the Vietnamese e-invoice rules this tool implements
+- `.github/workflows/` — CI (tests on every push/PR to `main`) and the release build (Windows exe,
+  triggered by version tags)
 - `CLAUDE.md` — guidance for AI coding agents working in this repo
 
 ## Testing
@@ -84,14 +96,26 @@ B-I (xem `CLAUDE.md` để biết chi tiết ánh xạ từng cột).
 Kết quả: một file báo cáo với một sheet cho mỗi loại lỗi/vi phạm (`Du_lieu_loi`, `Trung_lap`,
 `Vuot_nguong`) và một sheet tổng hợp `Tong_hop`.
 
+### Ứng dụng desktop (không cần dùng terminal)
+
+Tải file `accountant-check.exe` trong mục [latest release](../../releases/latest) (chỉ dùng cho
+Windows). Double-click để mở, chọn file hóa đơn `.xlsx` qua hộp thoại, xong sẽ hiện bảng tóm tắt kết
+quả — file `invalid_data.xlsx` được lưu ngay cạnh file đầu vào. Không cần cài đặt, không cần Python.
+
+Mỗi khi có một tag phiên bản mới dạng `vX.Y.Z` được đẩy lên, hệ thống sẽ tự động build lại file exe và
+tạo release mới — xem `.github/workflows/release.yml`.
+
 ### Cấu trúc dự án
 
 - `invoice_validator/` — package chính, thiết kế theo kiểu "rule registry": `helpers.py` (các hàm dùng
   chung), `field_rules.py` / `cross_row_rules.py` (các lớp rule), `engine.py` (danh sách rule mặc định +
   bộ chạy), `report.py`, `cli.py`. Muốn thêm một kiểm tra mới chỉ cần viết thêm một `Rule` và thêm vào
-  danh sách — không cần sửa rule đã có.
+  danh sách — không cần sửa rule đã có. `gui.py` là giao diện chọn file đơn giản dùng tkinter, dựa trên
+  cùng pipeline xử lý, dùng để build file exe desktop (`run_gui.py` là entry point cho PyInstaller).
 - `tests/` — bộ test dùng `unittest` (thư viện chuẩn, không cần cài pytest)
 - `docs/` — tài liệu tham khảo về quy định hóa đơn điện tử Việt Nam mà công cụ này áp dụng
+- `.github/workflows/` — CI (chạy test mỗi khi push/PR vào `main`) và release build (file exe Windows,
+  kích hoạt khi đẩy tag phiên bản)
 - `CLAUDE.md` — hướng dẫn dành cho các AI coding agent khi làm việc trong repo này
 
 ### Chạy test

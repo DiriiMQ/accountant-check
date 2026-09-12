@@ -95,3 +95,17 @@ interface), `helpers.py` (pure functions shared across rules: `is_blank`, `tax_c
 `report.py` builds one output sheet per rule category, while
 `cli.py` loads input, runs the registry, and writes the report. Add a rule by implementing `Rule` and adding
 it to the registry; a new category automatically receives its own worksheet.
+
+## Desktop app and CI
+
+`invoice_validator/gui.py` is a minimal tkinter front-end (file-picker dialog -> runs the same
+`engine.run_rules`/`report.write_report` pipeline as the CLI -> summary message box) — chosen over a web
+UI because it needs no server/browser, is stdlib-only, and packages cleanly into a single exe. The
+root-level `run_gui.py` is the PyInstaller entry point.
+
+`.github/workflows/ci.yml` runs the test suite on every push/PR to `main`. `.github/workflows/release.yml`
+runs on `vX.Y.Z` tags: reruns tests, then builds `accountant-check.exe` on `windows-latest` via PyInstaller
+(`--onefile --windowed run_gui.py`) and publishes it as a GitHub Release asset via `gh release create`
+(no third-party release action). If `gui.py`'s dependencies on `engine`/`report`/`loader` change shape,
+update it alongside `cli.py` — they intentionally duplicate a small amount of orchestration rather than
+share a return-type contract with `cli.run()`.
