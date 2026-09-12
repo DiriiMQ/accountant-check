@@ -152,6 +152,13 @@ impl App {
 }
 
 impl eframe::App for App {
+    /// eframe's default clear color is a near-black `rgba(12,12,12,180)`
+    /// regardless of the egui style's visuals -- override it explicitly, or the
+    /// window background stays dark even after `setup_style()` sets a light theme.
+    fn clear_color(&self, visuals: &egui::Visuals) -> [f32; 4] {
+        visuals.panel_fill.to_normalized_gamma_f32()
+    }
+
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if let Some(rx) = &self.result_rx {
             if let Ok(outcome) = rx.try_recv() {
@@ -187,10 +194,17 @@ impl eframe::App for App {
             }
         }
 
-        ui.add_space(20.0);
+        let accent = egui::Color32::from_rgb(37, 99, 235);
+        let subtle = egui::Color32::from_rgb(107, 114, 128);
+        let card_bg = egui::Color32::from_rgb(243, 244, 246);
+
+        ui.add_space(24.0);
         ui.vertical_centered(|ui| {
-            ui.heading("Kiểm tra danh sách hóa đơn đầu vào");
-            ui.add_space(10.0);
+            ui.heading(
+                egui::RichText::new("Kiểm tra danh sách hóa đơn đầu vào")
+                    .color(egui::Color32::from_rgb(17, 24, 39)),
+            );
+            ui.add_space(12.0);
 
             let file_label = self
                 .selected_path
@@ -198,46 +212,102 @@ impl eframe::App for App {
                 .and_then(|p| p.file_name())
                 .map(|n| n.to_string_lossy().to_string())
                 .unwrap_or_else(|| "Chưa chọn file".to_string());
-            ui.label(egui::RichText::new(file_label).color(egui::Color32::GRAY));
-            ui.add_space(14.0);
+            ui.label(egui::RichText::new(file_label).color(subtle).italics());
+            ui.add_space(16.0);
 
-            if ui
-                .add_sized([220.0, 28.0], egui::Button::new("Chọn file..."))
-                .clicked()
-                && !self.processing
-            {
+            let button = |ui: &mut egui::Ui, text: &str, enabled: bool, filled: bool| -> bool {
+                let mut button = egui::Button::new(egui::RichText::new(text).size(16.0))
+                    .min_size([240.0, 34.0].into());
+                if filled && enabled {
+                    button = button.fill(accent);
+                }
+                ui.add_enabled(enabled, button).clicked()
+            };
+
+            if button(ui, "Chọn file...", !self.processing, true) {
                 self.choose_file();
             }
-            ui.add_space(4.0);
+            ui.add_space(6.0);
 
             let submit_enabled = self.selected_path.is_some() && !self.processing;
-            if ui
-                .add_enabled(
-                    submit_enabled,
-                    egui::Button::new("Xử lý").min_size([220.0, 28.0].into()),
-                )
-                .clicked()
-            {
+            if button(ui, "Xử lý", submit_enabled, true) {
                 self.submit();
             }
-            ui.add_space(4.0);
+            ui.add_space(6.0);
 
             let open_enabled = self.output_path.is_some();
-            if ui
-                .add_enabled(
-                    open_enabled,
-                    egui::Button::new("Mở file kết quả").min_size([220.0, 28.0].into()),
-                )
-                .clicked()
-            {
+            if button(ui, "Mở file kết quả", open_enabled, false) {
                 self.open_output();
             }
 
-            ui.add_space(16.0);
-            ui.label(&self.status);
+            ui.add_space(18.0);
+
+            if self.processing {
+                ui.horizontal(|ui| {
+                    ui.spinner();
+                    ui.label(egui::RichText::new(&self.status).color(subtle));
+                });
+            } else if !self.status.is_empty() {
+                egui::Frame::default()
+                    .fill(card_bg)
+                    .corner_radius(8.0)
+                    .inner_margin(egui::Margin::same(14))
+                    .show(ui, |ui| {
+                        ui.set_max_width(300.0);
+                        ui.label(
+                            egui::RichText::new(&self.status)
+                                .color(egui::Color32::from_rgb(31, 41, 55)),
+                        );
+                    });
+            }
             ui.add_space(20.0);
         });
     }
+}
+
+/// Registers Noto Sans as the primary font, front of both the proportional and
+/// monospace family lists -- egui's bundled default font is missing the
+/// precomposed Vietnamese glyphs (e.g. `ể`, `ậ`, `ữ`), which otherwise render as
+/// tofu boxes. Noto Sans ("no tofu") explicitly covers the full Vietnamese
+/// Latin Extended Additional block.
+fn setup_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.font_data.insert(
+        "noto_sans".to_owned(),
+        std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
+            "../../assets/NotoSans.ttf"
+        ))),
+    );
+    fonts
+        .families
+        .entry(egui::FontFamily::Proportional)
+        .or_default()
+        .insert(0, "noto_sans".to_owned());
+    fonts
+        .families
+        .entry(egui::FontFamily::Monospace)
+        .or_default()
+        .push("noto_sans".to_owned());
+    ctx.set_fonts(fonts);
+}
+
+fn setup_style(ctx: &egui::Context) {
+    // Always light, regardless of the OS's dark/light setting -- the custom
+    // card/accent colors below are tuned for a light background.
+    ctx.set_theme(egui::ThemePreference::Light);
+    ctx.all_styles_mut(|style| {
+        style.spacing.item_spacing = egui::vec2(8.0, 8.0);
+        style.spacing.button_padding = egui::vec2(14.0, 8.0);
+        for font_id in style.text_styles.values_mut() {
+            font_id.size *= 1.15;
+        }
+        let rounding = egui::CornerRadius::same(8);
+        style.visuals.widgets.inactive.corner_radius = rounding;
+        style.visuals.widgets.hovered.corner_radius = rounding;
+        style.visuals.widgets.active.corner_radius = rounding;
+        style.visuals.window_fill = egui::Color32::WHITE;
+        style.visuals.panel_fill = egui::Color32::WHITE;
+    });
 }
 
 fn main() -> anyhow::Result<()> {
@@ -245,14 +315,18 @@ fn main() -> anyhow::Result<()> {
 
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([360.0, 340.0])
+            .with_inner_size([420.0, 420.0])
             .with_resizable(false),
         ..Default::default()
     };
     eframe::run_native(
         "Accountant Check",
         native_options,
-        Box::new(|_cc| Ok(Box::new(App::default()))),
+        Box::new(|cc| {
+            setup_fonts(&cc.egui_ctx);
+            setup_style(&cc.egui_ctx);
+            Ok(Box::new(App::default()))
+        }),
     )
     .map_err(|err| anyhow::anyhow!("eframe error: {err}"))
 }
