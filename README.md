@@ -12,14 +12,6 @@ modified.
   2025-07-01, 5,000,000 VND from that date on, per current regulation (see
   `docs/vietnam-e-invoice-knowledge-base.md`)
 
-## Requirements
-
-Python 3.10+, pandas, openpyxl.
-
-```
-pip install -r requirements.txt
-```
-
 ## Usage
 
 ### Desktop app (recommended, no terminal needed)
@@ -34,6 +26,12 @@ No install, no Python needed — just a Windows computer.
 6. The report file `invalid_data.xlsx` is saved in the same folder as your invoice file.
 
 ### Command line (advanced)
+
+Requirements: Python 3.10+, pandas, openpyxl.
+
+```
+pip install -r requirements.txt
+```
 
 ```
 python3 -m invoice_validator <input.xlsx> [-o report.xlsx] [--threshold 5000000]
@@ -80,14 +78,6 @@ dòng bị gắn cờ ra một file báo cáo riêng. File dữ liệu đầu v�
   20.000.000 VNĐ trước ngày 01/07/2025, 5.000.000 VNĐ từ ngày đó trở đi, theo quy định hiện hành (xem
   `docs/vietnam-e-invoice-knowledge-base.md`)
 
-### Yêu cầu
-
-Python 3.10 trở lên, pandas, openpyxl.
-
-```
-pip install -r requirements.txt
-```
-
 ### Cách sử dụng
 
 #### Ứng dụng desktop (khuyên dùng, không cần terminal)
@@ -102,6 +92,12 @@ Không cần cài đặt, không cần Python — chỉ cần máy tính Windows
 6. File báo cáo `invalid_data.xlsx` sẽ được lưu ngay trong thư mục chứa file hóa đơn của bạn.
 
 #### Dòng lệnh (nâng cao)
+
+Yêu cầu: Python 3.10 trở lên, pandas, openpyxl.
+
+```
+pip install -r requirements.txt
+```
 
 ```
 python3 -m invoice_validator <file_dau_vao.xlsx> [-o bao_cao.xlsx] [--threshold 5000000]
