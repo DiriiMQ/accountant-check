@@ -115,7 +115,18 @@ share a return-type contract with `cli.run()`.
 `invoice_validator/logging_setup.py`'s `configure_logging()` sets up a single rotating log file at
 `~/.accountant_check/logs/app.log` (1 MB, 3 backups; `Path.home()` resolves correctly on both Windows and
 macOS/Linux). Both entry points (`cli.main()` and `gui.main()`) call it at startup; each logs input path,
-row count, violation counts, and output path, and logs the full traceback via `logger.exception(...)` on
-failure. The GUI's error dialog also prints the log path so a non-technical user can find and send that
-one file back for debugging — don't log raw invoice data (seller names, tax codes, amounts), only
-counts/paths/exceptions, to keep the log small and avoid logging business data unnecessarily.
+per-phase timing (load/rules/report), violation counts, and output path, and logs the full traceback via
+`logger.exception(...)` on failure. Log messages are English (only the Vietnamese rule-category keywords
+— `Du_lieu_loi`, `Trung_lap`, `Vuot_nguong` — stay as-is, since those are domain identifiers shared with
+`config.py`/`report.py`, not prose). The GUI's error dialog also prints the log path so a non-technical
+user can find and send that one file back for debugging — don't log raw invoice data (seller names, tax
+codes, amounts), only counts/paths/exceptions, to keep the log small and avoid logging business data
+unnecessarily.
+
+`logging_setup.ResourceHeartbeat` (needs `psutil`) is a context manager that logs CPU% and available RAM
+every 5s on a background thread, wrapped around the load/rules/report block in both `cli.run()` and
+`gui.process()`. It exists specifically for hangs, not crashes: if the app freezes under resource
+pressure, an exception handler never runs, so the log would otherwise just go silent with no clue why.
+Runs on its own thread rather than via a `tkinter` `.after()` timer because the GUI's main thread is
+synchronously blocked for the whole duration of `process()` — the Tk event loop doesn't get a chance to
+fire timer callbacks until that call returns.

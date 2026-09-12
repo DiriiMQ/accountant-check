@@ -2,13 +2,14 @@
 
 import argparse
 import logging
+import time
 from pathlib import Path
 
 from .config import DEFAULT_OUTPUT_FILENAME
 from .cross_row_rules import OverThresholdRule
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
-from .logging_setup import configure_logging
+from .logging_setup import ResourceHeartbeat, configure_logging
 from .report import write_report
 
 logger = logging.getLogger(__name__)
@@ -36,19 +37,25 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run(input_path: Path, output_path: Path | None, threshold: int | None) -> Path:
     output = output_path or input_path.with_name(DEFAULT_OUTPUT_FILENAME)
-    logger.info("Bat dau xu ly: input=%s output=%s threshold=%s", input_path, output, threshold)
+    logger.info("Starting processing: input=%s output=%s threshold=%s", input_path, output, threshold)
 
-    df = load_invoices(input_path)
-    logger.info("Da doc %d dong du lieu", len(df))
-    rules = [*DEFAULT_RULES[:-1], OverThresholdRule(threshold)]
-    violations = run_rules(df, rules)
-    category_counts = {
-        category: len({violation.excel_row for violation in violations if violation.category == category})
-        for category in ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
-    }
-    logger.info("Ket qua: %s", category_counts)
+    with ResourceHeartbeat(logger):
+        t0 = time.perf_counter()
+        df = load_invoices(input_path)
+        logger.info("Loaded %d data rows (%.2fs)", len(df), time.perf_counter() - t0)
 
-    write_report(output, len(df), df, violations, threshold)
+        t0 = time.perf_counter()
+        rules = [*DEFAULT_RULES[:-1], OverThresholdRule(threshold)]
+        violations = run_rules(df, rules)
+        category_counts = {
+            category: len({violation.excel_row for violation in violations if violation.category == category})
+            for category in ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
+        }
+        logger.info("Rules finished (%.2fs): %s", time.perf_counter() - t0, category_counts)
+
+        t0 = time.perf_counter()
+        write_report(output, len(df), df, violations, threshold)
+        logger.info("Report written (%.2fs): %s", time.perf_counter() - t0, output)
 
     threshold_desc = f"{threshold:,} VND (flat override)" if threshold is not None else "theo ngay hieu luc (xem nguong_ap_dung)"
     print(f"Tong so dong du lieu : {len(df)}")
@@ -66,7 +73,7 @@ def main() -> None:
     try:
         run(args.input, args.output, args.threshold)
     except Exception:
-        logger.exception("Xu ly bi loi")
+        logger.exception("Processing failed")
         raise
 
 

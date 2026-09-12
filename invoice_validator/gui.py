@@ -8,13 +8,14 @@ import logging
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from tkinter import Button, Label, StringVar, Tk, filedialog, messagebox
 
 from .config import DEFAULT_OUTPUT_FILENAME
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
-from .logging_setup import LOG_FILE, configure_logging
+from .logging_setup import LOG_FILE, ResourceHeartbeat, configure_logging
 from .report import write_report
 
 logger = logging.getLogger(__name__)
@@ -34,16 +35,20 @@ def open_file(path: Path) -> None:
 
 def process(input_path: Path) -> tuple[Path, dict[str, int]]:
     output = input_path.with_name(DEFAULT_OUTPUT_FILENAME)
-    logger.info("Bat dau xu ly: input=%s", input_path)
-    df = load_invoices(input_path)
-    logger.info("Da doc %d dong du lieu", len(df))
-    violations = run_rules(df, DEFAULT_RULES)
-    write_report(output, len(df), df, violations, None)
-    counts = {
-        category: len({violation.excel_row for violation in violations if violation.category == category})
-        for category in CATEGORIES
-    }
-    logger.info("Ket qua: %s -> %s", counts, output)
+    logger.info("Starting processing: input=%s", input_path)
+    with ResourceHeartbeat(logger):
+        t0 = time.perf_counter()
+        df = load_invoices(input_path)
+        logger.info("Loaded %d data rows (%.2fs)", len(df), time.perf_counter() - t0)
+
+        t0 = time.perf_counter()
+        violations = run_rules(df, DEFAULT_RULES)
+        write_report(output, len(df), df, violations, None)
+        counts = {
+            category: len({violation.excel_row for violation in violations if violation.category == category})
+            for category in CATEGORIES
+        }
+        logger.info("Rules + report finished (%.2fs): %s -> %s", time.perf_counter() - t0, counts, output)
     return output, counts
 
 
@@ -102,7 +107,7 @@ class App:
         try:
             output, counts = process(self.selected_path)
         except Exception as exc:
-            logger.exception("Xu ly bi loi")
+            logger.exception("Processing failed")
             messagebox.showerror(
                 "Lỗi",
                 f"Không thể xử lý file:\n{exc}\n\n"
@@ -126,7 +131,7 @@ class App:
         try:
             open_file(self.output_path)
         except OSError as exc:
-            logger.exception("Khong the mo file ket qua")
+            logger.exception("Failed to open result file")
             messagebox.showerror("Lỗi", f"Không thể mở file:\n{exc}")
 
 
