@@ -5,7 +5,7 @@ import logging
 import time
 from pathlib import Path
 
-from .config import DEFAULT_OUTPUT_FILENAME
+from .config import DEFAULT_OUTPUT_FILENAME, REPORT_CATEGORIES, ViolationCategory
 from .cross_row_rules import OverThresholdRule
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
@@ -49,7 +49,7 @@ def run(input_path: Path, output_path: Path | None, threshold: int | None) -> Pa
         violations = run_rules(df, rules)
         category_counts = {
             category: len({violation.excel_row for violation in violations if violation.category == category})
-            for category in ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
+            for category in REPORT_CATEGORIES
         }
         logger.info("Rules finished (%.2fs): %s", time.perf_counter() - t0, category_counts)
 
@@ -59,9 +59,9 @@ def run(input_path: Path, output_path: Path | None, threshold: int | None) -> Pa
 
     threshold_desc = f"{threshold:,} VND (flat override)" if threshold is not None else "theo ngay hieu luc (xem nguong_ap_dung)"
     print(f"Tong so dong du lieu : {len(df)}")
-    print(f"Du lieu loi          : {category_counts['Du_lieu_loi']}")
-    print(f"Trung lap            : {category_counts['Trung_lap']}")
-    print(f"Vuot nguong ({threshold_desc}): {category_counts['Vuot_nguong']}")
+    print(f"Du lieu loi          : {category_counts[ViolationCategory.DATA_ERROR.value]}")
+    print(f"Trung lap            : {category_counts[ViolationCategory.DUPLICATE.value]}")
+    print(f"Vuot nguong ({threshold_desc}): {category_counts[ViolationCategory.OVER_THRESHOLD.value]}")
     print(f"Da ghi ket qua vao   : {output}")
 
     return output

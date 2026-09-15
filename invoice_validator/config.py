@@ -5,15 +5,35 @@ Input layout (columns B-I, header rows 1-14, data starting at row 15):
     F=Ma so thue nguoi ban  G=Doanh so mua chua co thue  H=Thue GTGT  I=Ghi chu
 """
 
+from enum import Enum
+
+
+class Column(str, Enum):
+    STT = "stt"
+    INVOICE_NUMBER = "so_hoa_don"
+    INVOICE_DATE = "ngay_lap_hoa_don"
+    SELLER_NAME = "ten_nguoi_ban"
+    TAX_CODE = "ma_so_thue"
+    AMOUNT_EX_VAT = "doanh_so_mua_chua_thue"
+    VAT_AMOUNT = "thue_gtgt"
+    NOTE = "ghi_chu"
+
+
+class ViolationCategory(str, Enum):
+    DATA_ERROR = "Du_lieu_loi"
+    DUPLICATE = "Trung_lap"
+    OVER_THRESHOLD = "Vuot_nguong"
+
+
 COLUMNS = [
-    "stt",
-    "so_hoa_don",
-    "ngay_lap_hoa_don",
-    "ten_nguoi_ban",
-    "ma_so_thue",
-    "doanh_so_mua_chua_thue",
-    "thue_gtgt",
-    "ghi_chu",
+    Column.STT.value,
+    Column.INVOICE_NUMBER.value,
+    Column.INVOICE_DATE.value,
+    Column.SELLER_NAME.value,
+    Column.TAX_CODE.value,
+    Column.AMOUNT_EX_VAT.value,
+    Column.VAT_AMOUNT.value,
+    Column.NOTE.value,
 ]
 
 HEADER_ROWS = 14  # rows 1-14 are title/header; data starts at row 15
@@ -21,13 +41,19 @@ EXCEL_ROW_OFFSET = HEADER_ROWS + 1
 
 # Columns C-H: rows identical across all of these count as duplicates.
 DUPLICATE_KEY = [
-    "so_hoa_don",
-    "ngay_lap_hoa_don",
-    "ten_nguoi_ban",
-    "ma_so_thue",
-    "doanh_so_mua_chua_thue",
-    "thue_gtgt",
+    Column.INVOICE_NUMBER.value,
+    Column.INVOICE_DATE.value,
+    Column.SELLER_NAME.value,
+    Column.TAX_CODE.value,
+    Column.AMOUNT_EX_VAT.value,
+    Column.VAT_AMOUNT.value,
 ]
+
+REPORT_CATEGORIES = (
+    ViolationCategory.DATA_ERROR.value,
+    ViolationCategory.DUPLICATE.value,
+    ViolationCategory.OVER_THRESHOLD.value,
+)
 
 # Valid Vietnamese tax-code shapes seen in this dataset (digits only, dash/space
 # separators ignored): 10 = organization MST, 12 = individual's CCCD used as MST,

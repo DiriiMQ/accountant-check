@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import COLUMNS, HEADER_ROWS
+from .config import COLUMNS, HEADER_ROWS, Column
 
 # so_hoa_don and ma_so_thue must stay text: if pandas infers a column as
 # uniformly numeric it silently drops leading zeros (e.g. "00002224" -> 2224).
 # The real file only avoids this by accident (a few non-numeric values like
 # "976." force object dtype) -- don't rely on that, force it explicitly.
-TEXT_COLUMNS = {COLUMNS.index("so_hoa_don"): str, COLUMNS.index("ma_so_thue"): str}
+TEXT_COLUMNS = {COLUMNS.index(Column.INVOICE_NUMBER.value): str, COLUMNS.index(Column.TAX_CODE.value): str}
 
 
 def load_invoices(path: Path) -> pd.DataFrame:
