@@ -25,6 +25,13 @@ class ViolationCategory(str, Enum):
     OVER_THRESHOLD = "Vuot_nguong"
 
 
+class DerivedField(str, Enum):
+    DUPLICATE_GROUP = "nhom_trung"
+    ROW_TOTAL = "tong_tien"
+    DAILY_TOTAL = "tong_theo_ngay"
+    APPLIED_THRESHOLD = "nguong_ap_dung"
+
+
 COLUMNS = [
     Column.STT.value,
     Column.INVOICE_NUMBER.value,

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import Column, ViolationCategory
+from .config import Column, DerivedField, ViolationCategory
 from .violations import Violation
 
 
@@ -62,15 +62,20 @@ def _category_frame(df: pd.DataFrame, category: str, violations: list[Violation]
     rows = rows.merge(extras, on="excel_row", how="inner")
 
     if category == ViolationCategory.DUPLICATE.value:
-        return rows.sort_values(["nhom_trung", "excel_row"])
+        return rows.sort_values([DerivedField.DUPLICATE_GROUP.value, "excel_row"])
 
     if category == ViolationCategory.OVER_THRESHOLD.value:
         # This derived column existed in the pre-registry report and remains useful
         # when reconciling a same-seller/same-day total.
-        rows["tong_tien"] = pd.to_numeric(rows[Column.AMOUNT_EX_VAT.value], errors="coerce").fillna(0) + pd.to_numeric(
+        rows[DerivedField.ROW_TOTAL.value] = pd.to_numeric(rows[Column.AMOUNT_EX_VAT.value], errors="coerce").fillna(0) + pd.to_numeric(
             rows[Column.VAT_AMOUNT.value], errors="coerce"
         ).fillna(0)
-        columns = [column for column in df.columns] + ["tong_tien", "tong_theo_ngay", "nguong_ap_dung"]
+        columns = [
+            *[column for column in df.columns],
+            DerivedField.ROW_TOTAL.value,
+            DerivedField.DAILY_TOTAL.value,
+            DerivedField.APPLIED_THRESHOLD.value,
+        ]
         return rows.loc[:, columns].sort_values([Column.TAX_CODE.value, Column.INVOICE_DATE.value, "excel_row"])
 
     # New categories need no report.py changes: provide the flagged rows and
