@@ -2,27 +2,35 @@
 
 import pandas as pd
 
-from .config import DUPLICATE_KEY
+from .config import Column, DUPLICATE_KEY, DerivedField, ViolationCategory
 from .helpers import is_blank, threshold_for_date
 from .violations import Rule, Violation
 
 
 class DuplicateRowsRule(Rule):
     code = "duplicate_rows"
-    category = "Trung_lap"
+    category = ViolationCategory.DUPLICATE.value
     message = "Trung lap"
 
     def check(self, df: pd.DataFrame) -> list[Violation]:
         duplicates = df.loc[df.duplicated(subset=DUPLICATE_KEY, keep=False)].copy()
-        duplicates["nhom_trung"] = duplicates.groupby(DUPLICATE_KEY, dropna=False).ngroup() + 1
+        duplicates[DerivedField.DUPLICATE_GROUP.value] = duplicates.groupby(DUPLICATE_KEY, dropna=False).ngroup() + 1
         return [
-            Violation(int(row.excel_row), self.code, self.category, self.message, {"nhom_trung": int(row.nhom_trung)})
-            for row in duplicates.sort_values(["nhom_trung", "excel_row"])[["excel_row", "nhom_trung"]].itertuples(index=False)
+            Violation(
+                int(row.excel_row),
+                self.code,
+                self.category,
+                self.message,
+                {DerivedField.DUPLICATE_GROUP.value: int(row.nhom_trung)},
+            )
+            for row in duplicates.sort_values([DerivedField.DUPLICATE_GROUP.value, "excel_row"])[
+                ["excel_row", DerivedField.DUPLICATE_GROUP.value]
+            ].itertuples(index=False)
         ]
 
 class OverThresholdRule(Rule):
     code = "over_threshold"
-    category = "Vuot_nguong"
+    category = ViolationCategory.OVER_THRESHOLD.value
     message = "Vuot nguong"
 
     def __init__(self, threshold: int | None = None):
@@ -30,21 +38,28 @@ class OverThresholdRule(Rule):
 
     def check(self, df: pd.DataFrame) -> list[Violation]:
         valid = df.loc[
-            ~df["ma_so_thue"].map(is_blank)
-            & df["ngay_lap_hoa_don"].map(lambda value: isinstance(value, pd.Timestamp))
+            ~df[Column.TAX_CODE.value].map(is_blank)
+            & df[Column.INVOICE_DATE.value].map(lambda value: isinstance(value, pd.Timestamp))
         ].copy()
-        valid["tong_tien"] = pd.to_numeric(valid["doanh_so_mua_chua_thue"], errors="coerce").fillna(0) + pd.to_numeric(
-            valid["thue_gtgt"], errors="coerce"
+        valid[DerivedField.ROW_TOTAL.value] = pd.to_numeric(valid[Column.AMOUNT_EX_VAT.value], errors="coerce").fillna(0) + pd.to_numeric(
+            valid[Column.VAT_AMOUNT.value], errors="coerce"
         ).fillna(0)
-        valid["tong_theo_ngay"] = valid.groupby(["ma_so_thue", "ngay_lap_hoa_don"])["tong_tien"].transform("sum")
-        valid["nguong_ap_dung"] = self.threshold if self.threshold is not None else valid["ngay_lap_hoa_don"].map(threshold_for_date)
-        flagged = valid.loc[valid["tong_theo_ngay"] >= valid["nguong_ap_dung"]]
+        valid[DerivedField.DAILY_TOTAL.value] = valid.groupby([Column.TAX_CODE.value, Column.INVOICE_DATE.value])[
+            DerivedField.ROW_TOTAL.value
+        ].transform("sum")
+        valid[DerivedField.APPLIED_THRESHOLD.value] = (
+            self.threshold if self.threshold is not None else valid[Column.INVOICE_DATE.value].map(threshold_for_date)
+        )
+        flagged = valid.loc[valid[DerivedField.DAILY_TOTAL.value] >= valid[DerivedField.APPLIED_THRESHOLD.value]]
         return [
             Violation(
                 int(row.excel_row), self.code, self.category, self.message,
-                {"tong_theo_ngay": row.tong_theo_ngay, "nguong_ap_dung": row.nguong_ap_dung},
+                {
+                    DerivedField.DAILY_TOTAL.value: row.tong_theo_ngay,
+                    DerivedField.APPLIED_THRESHOLD.value: row.nguong_ap_dung,
+                },
             )
-            for row in flagged.sort_values(["ma_so_thue", "ngay_lap_hoa_don", "excel_row"])[
-                ["excel_row", "tong_theo_ngay", "nguong_ap_dung"]
+            for row in flagged.sort_values([Column.TAX_CODE.value, Column.INVOICE_DATE.value, "excel_row"])[
+                ["excel_row", DerivedField.DAILY_TOTAL.value, DerivedField.APPLIED_THRESHOLD.value]
             ].itertuples(index=False)
         ]

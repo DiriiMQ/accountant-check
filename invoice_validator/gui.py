@@ -12,16 +12,13 @@ import time
 from pathlib import Path
 from tkinter import Button, Label, StringVar, Tk, filedialog, messagebox
 
-from .config import DEFAULT_OUTPUT_FILENAME
+from .config import DEFAULT_OUTPUT_FILENAME, REPORT_CATEGORIES, ViolationCategory
 from .engine import DEFAULT_RULES, run_rules
 from .loader import load_invoices
 from .logging_setup import LOG_FILE, ResourceHeartbeat, configure_logging
 from .report import write_report
 
 logger = logging.getLogger(__name__)
-
-CATEGORIES = ("Du_lieu_loi", "Trung_lap", "Vuot_nguong")
-
 
 def open_file(path: Path) -> None:
     """Open a file with the OS's default associated app."""
@@ -46,7 +43,7 @@ def process(input_path: Path) -> tuple[Path, dict[str, int]]:
         write_report(output, len(df), df, violations, None)
         counts = {
             category: len({violation.excel_row for violation in violations if violation.category == category})
-            for category in CATEGORIES
+            for category in REPORT_CATEGORIES
         }
         logger.info("Rules + report finished (%.2fs): %s -> %s", time.perf_counter() - t0, counts, output)
     return output, counts
@@ -119,9 +116,9 @@ class App:
         self.output_path = output
         self.open_button.config(state="normal")
         self.status_var.set(
-            f"Dữ liệu lỗi: {counts['Du_lieu_loi']}\n"
-            f"Trùng lặp: {counts['Trung_lap']}\n"
-            f"Vượt ngưỡng: {counts['Vuot_nguong']}\n\n"
+            f"Dữ liệu lỗi: {counts[ViolationCategory.DATA_ERROR.value]}\n"
+            f"Trùng lặp: {counts[ViolationCategory.DUPLICATE.value]}\n"
+            f"Vượt ngưỡng: {counts[ViolationCategory.OVER_THRESHOLD.value]}\n\n"
             f"Đã lưu kết quả: {output}"
         )
 
